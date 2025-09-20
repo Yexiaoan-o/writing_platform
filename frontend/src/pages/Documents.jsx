@@ -1,40 +1,55 @@
 
-import { List, Card } from "antd";
+
+import { List, Card, Spin, message } from "antd";
 import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { mockDocs } from "../mockDocs";
+import { fetchDocuments } from "../services/api";
 
 export default function Documents() {
-  const data = Object.keys(mockDocs).map((id) => ({
-    id,
-    raw: mockDocs[id],
-    titleMarkdown: mockDocs[id].split("\n")[0] // 取第一行作为标题（通常是 # 标题）
-  }));
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDocuments()
+      .then((data) => {
+        // Expecting data to be an array of documents with id and content
+        setDocs(
+          data.map((doc) => ({
+            id: doc.id || doc._id,
+            raw: doc.content || doc.raw || "",
+            titleMarkdown: (doc.content || doc.raw || "").split("\n")[0],
+          }))
+        );
+      })
+      .catch(() => message.error("获取文档列表失败"))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
-    <List
-      grid={{ gutter: 16, column: 1 }}
-      dataSource={data}
-      renderItem={(item) => (
-        <List.Item key={item.id}>
-          <Card>
-            {/* 用 react-markdown 渲染标题（支持 #、** 等） */}
-            <div style={{ marginBottom: 8 }}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {item.titleMarkdown}
-              </ReactMarkdown>
-            </div>
-            <div>
-              {/* 可渲染简短摘要（也可以用 ReactMarkdown） */}
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {item.raw.split("\n").slice(1, 4).join("\n")}
-              </ReactMarkdown>
-            </div>
-            <Link to={`/documents/${item.id}`}>查看详情</Link>
-          </Card>
-        </List.Item>
-      )}
-    />
+    <Spin spinning={loading} tip="加载中...">
+      <List
+        grid={{ gutter: 16, column: 1 }}
+        dataSource={docs}
+        renderItem={(item) => (
+          <List.Item key={item.id}>
+            <Card>
+              <div style={{ marginBottom: 8 }}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {item.titleMarkdown}
+                </ReactMarkdown>
+              </div>
+              <div>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {item.raw.split("\n").slice(1, 4).join("\n")}
+                </ReactMarkdown>
+              </div>
+              <Link to={`/documents/${item.id}`}>查看详情</Link>
+            </Card>
+          </List.Item>
+        )}
+      />
+    </Spin>
   );
 }
