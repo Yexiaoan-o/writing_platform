@@ -28,12 +28,15 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST /documents
+
+// POST /documents (with author, folder, created_at, updated_at)
 router.post("/", async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, author, folder } = req.body;
   try {
     const result = await pool.query(
-      "INSERT INTO documents (title, content) VALUES ($1, $2) RETURNING *",
-      [title, content]
+      `INSERT INTO documents (title, content, author, folder, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING *`,
+      [title, content, author, folder]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -43,13 +46,15 @@ router.post("/", async (req, res) => {
 });
 
 // PUT /documents/:id
+
+// PUT /documents/:id (with author, folder, updated_at)
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const { title, content } = req.body;
+  const { title, content, author, folder } = req.body;
   try {
     const result = await pool.query(
-      "UPDATE documents SET title=$1, content=$2 WHERE id=$3 RETURNING *",
-      [title, content, id]
+      `UPDATE documents SET title=$1, content=$2, author=$3, folder=$4, updated_at=NOW() WHERE id=$5 RETURNING *`,
+      [title, content, author, folder, id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: "Document not found" });
     res.json(result.rows[0]);
