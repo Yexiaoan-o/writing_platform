@@ -41,3 +41,50 @@ export async function deleteDocument(id) {
   if (!res.ok) throw new Error('Failed to delete document');
   return res.json();
 }
+
+// Folder APIs
+export async function createFolder(data) {
+  const res = await fetch(`${API_BASE}/folders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to create folder');
+  }
+  return res.json();
+}
+
+export async function updateFolder(id, data) {
+  const res = await fetch(`${API_BASE}/folders/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to update folder');
+  }
+  return res.json();
+}
+
+export async function deleteFolder(id) {
+  const res = await fetch(`${API_BASE}/folders/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to delete folder');
+  }
+  return res.json();
+}
+
+export async function fetchFolders() {
+  const res = await fetch(`${API_BASE}/folders`);
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch folders');
+  }
+  return res.json();
+}
